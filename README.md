@@ -1,6 +1,6 @@
-## 项目简介
+# mybig-event
 
-mybig-event 是一个基于 Spring Boot 的事件管理系统，提供用户管理、文章发布、分类管理、文件上传等功能，采用现代化的 Java 技术栈构建，支持高效开发和部署。
+基于 Spring Boot 的事件管理系统，提供用户管理、文章发布、分类管理、文件上传等功能，采用现代化的 Java 技术栈构建，支持高效开发和部署。
 
 ## 技术栈
 
@@ -8,8 +8,8 @@ mybig-event 是一个基于 Spring Boot 的事件管理系统，提供用户管�
 - **数据访问**：MyBatis 3.0.0、PageHelper 1.4.7
 - **数据库**：MySQL 8.0.33
 - **缓存**：Redis
-- **认证授权**：JWT (java-jwt 4.4.0)
-- **文件存储**：阿里云 OSS (aliyun-sdk-oss 3.15.1)
+- **认证授权**：JWT（java-jwt 4.4.0）
+- **文件存储**：阿里云 OSS（aliyun-sdk-oss 3.15.1）
 - **数据校验**：Spring Boot Starter Validation
 - **工具类**：Lombok、MD5 加密
 - **构建工具**：Maven
@@ -44,8 +44,6 @@ mybig-event 是一个基于 Spring Boot 的事件管理系统，提供用户管�
 
 ## 项目结构
 
-plaintext
-
 ```plaintext
 mybig-event/
 ├── src/
@@ -79,61 +77,59 @@ mybig-event/
 ### 配置步骤
 
 1. **克隆仓库**
-    bash
 
-    ```bash
-    git clone https://github.com/yourusername/mybig-event.git
-    cd mybig-event
-    ```
+   ```bash
+   git clone https://github.com/foorgange/mybig-event.git
+   cd mybig-event
+   ```
+
 2. **修改配置文件**
-    编辑 `src/main/resources/application.yml`，配置数据库和 Redis 连接：
-    yaml
 
-    ```yaml
-    spring:
-      datasource:
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/big_event
-        username: 你的数据库用户名
-        password: 你的数据库密码
-      data:
-        redis:
-          host: localhost
-          port: 6379
-          password: 你的Redis密码（如无则留空）
-    ```
+   编辑 `src/main/resources/application.yml`，配置数据库和 Redis 连接：
+
+   ```yaml
+   spring:
+     datasource:
+       driver-class-name: com.mysql.cj.jdbc.Driver
+       url: jdbc:mysql://localhost:3306/big_event
+       username: 你的数据库用户名
+       password: 你的数据库密码
+     data:
+       redis:
+         host: localhost
+         port: 6379
+         password: 你的Redis密码（如无则留空）
+   ```
+
 3. **配置阿里云 OSS**
-    编辑 `src/main/java/itheima/utils/AliOssUtil.java`，修改 OSS 配置：
-    java
 
-    运行
+   编辑 `src/main/java/itheima/utils/AliOssUtil.java`，修改 OSS 配置：
 
-    ```java
-    private static final String ENDPOINT = "你的OSS地域节点";
-    private static final String ACCESS_KEY_ID = "你的ACCESS_KEY_ID";
-    private static final String ACCESS_KEY_SECRET = "你的ACCESS_KEY_SECRET";
-    private static final String BUCKET_NAME = "你的Bucket名称";
-    ```
+   ```java
+   private static final String ENDPOINT = "你的OSS地域节点";
+   private static final String ACCESS_KEY_ID = "你的ACCESS_KEY_ID";
+   private static final String ACCESS_KEY_SECRET = "你的ACCESS_KEY_SECRET";
+   private static final String BUCKET_NAME = "你的Bucket名称";
+   ```
 
-    > 建议生产环境通过环境变量注入密钥，避免硬编码
-    >
+   > 建议生产环境通过环境变量注入密钥，避免硬编码
+
 4. **创建数据库**
-    在 MySQL 中创建数据库 `big_event`，并根据实体类创建对应表结构（可通过 MyBatis 逆向工程生成）。
+
+   在 MySQL 中创建数据库 `big_event`，并根据实体类创建对应表结构（可通过 MyBatis 逆向工程生成）。
+
 5. **构建与运行**
-    bash
 
-    ```bash
-    mvn clean package
-    java -jar target/mybig-event-1.0-SNAPSHOT.jar
-    ```
+   ```bash
+   mvn clean package
+   java -jar target/mybig-event-1.0-SNAPSHOT.jar
+   ```
 
-    服务将在 `http://localhost:9090` 启动
+   服务将在 `http://localhost:9090` 启动。
 
 ## API 示例
 
 ### 用户注册
-
-bash
 
 ```bash
 POST /user/register
@@ -146,8 +142,6 @@ Content-Type: application/json
 ```
 
 ### 文章发布
-
-bash
 
 ```bash
 POST /article
@@ -181,4 +175,4 @@ Authorization: Bearer {your-jwt-token}
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详见 LICENSE 文件（如未提供则默认保留所有权利）
+本项目未附带 LICENSE 文件，如未另行声明则默认保留所有权利。
