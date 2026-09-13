@@ -5,42 +5,68 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JwtTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class JwtTest {
+
+    private static final String SECRET = "itheima";
 
     @Test
-    public void testGen() {
+    @DisplayName("生成并解析 JWT，载荷内容保持一致")
+    void testGenAndParse() {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", 1);
         claims.put("username", "张三");
-        //生成jwt的代码
+
+        // 生成 JWT：有效期 1 小时，确保解析时尚未过期
         String token = JWT.create()
-                .withClaim("user", claims)//添加载荷
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000))//添加过期时间
-                .sign(Algorithm.HMAC256("itheima"));//指定算法,配置秘钥
+                .withClaim("user", claims)
+                .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000L))
+                .sign(Algorithm.HMAC256(SECRET));
 
-        System.out.println(token);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length, "JWT 应由 header.payload.signature 三段组成");
 
+        // 解析并校验 Token
+        JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(SECRET)).build();
+        DecodedJWT decodedJWT = jwtVerifier.verify(token);
+
+        Map<String, Claim> parsedClaims = decodedJWT.getClaims();
+        assertNotNull(parsedClaims.get("user"));
+        assertEquals(1, parsedClaims.get("user").asMap().get("id"));
+        assertEquals("张三", parsedClaims.get("user").asMap().get("username"));
     }
 
     @Test
-    public void testParse() {
-        //定义字符串,模拟用户传递过来的token
-        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IuW8oOS4iSJ9LCJleHAiOjE2OTQzMjUzMzB9.dFmeOG04w6EfnCue4CFS-x-XMRv145EfsY8wnchbxL4";
+    @DisplayName("密钥不匹配时校验失败")
+    void testParseRejectsWrongSecret() {
+        String token = JWT.create()
+                .withClaim("user", Map.of("id", 1))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000L))
+                .sign(Algorithm.HMAC256(SECRET));
 
-        JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256("itheima")).build();
+        JWTVerifier wrongVerifier = JWT.require(Algorithm.HMAC256("wrong-secret")).build();
+        assertThrows(Exception.class, () -> wrongVerifier.verify(token));
+    }
 
-        DecodedJWT decodedJWT = jwtVerifier.verify(token);//验证token,生成一个解析后的JWT对象
-        Map<String, Claim> claims = decodedJWT.getClaims();
-        System.out.println(claims.get("user"));
+    @Test
+    @DisplayName("Token 过期后校验失败")
+    void testParseRejectsExpiredToken() {
+        String expiredToken = JWT.create()
+                .withClaim("user", Map.of("id", 1))
+                .withExpiresAt(new Date(System.currentTimeMillis() - 1000L))
+                .sign(Algorithm.HMAC256(SECRET));
 
-        //如果篡改了头部和载荷部分的数据,那么验证失败
-        //如果秘钥改了,验证失败
-        //token过期
+        JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(SECRET)).build();
+        assertThrows(Exception.class, () -> jwtVerifier.verify(expiredToken));
     }
 }

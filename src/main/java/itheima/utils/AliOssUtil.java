@@ -9,40 +9,45 @@ import com.aliyun.oss.model.PutObjectResult;
 
 import java.io.InputStream;
 
+/**
+ * 阿里云 OSS 上传工具。
+ *
+ * <p>访问凭证从环境变量 OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET 读取，
+ * 请勿在源码中硬编码任何密钥。</p>
+ */
 public class AliOssUtil {
 
-    // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
-    private static final String ENDPOINT = "https://oss-cn-beijing.aliyuncs.com";
-    // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
-    //EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
-    private static final String ACCESS_KEY_ID="LTAI5tDo5L5Xzx8vaHRxyFFB";
-    private static final String ACCESS_KEY_SECRET="7Y68TzPJUzEZLslsmbvyENm5get9eZ";
-    // 填写Bucket名称，例如examplebucket。
-    private static final String BUCKET_NAME = "big-event";
+    /** Endpoint 以华北 2（北京）为例，可通过环境变量覆盖。 */
+    private static final String ENDPOINT = System.getenv().getOrDefault(
+            "OSS_ENDPOINT", "https://oss-cn-beijing.aliyuncs.com");
+
+    private static final String ACCESS_KEY_ID = System.getenv("OSS_ACCESS_KEY_ID");
+    private static final String ACCESS_KEY_SECRET = System.getenv("OSS_ACCESS_KEY_SECRET");
+
+    /** Bucket 名称，例如 examplebucket。 */
+    private static final String BUCKET_NAME = System.getenv().getOrDefault(
+            "OSS_BUCKET", "big-event");
 
     public static String uploadFile(String objectName, InputStream in) throws Exception {
 
+        if (ACCESS_KEY_ID == null || ACCESS_KEY_ID.isEmpty()
+                || ACCESS_KEY_SECRET == null || ACCESS_KEY_SECRET.isEmpty()) {
+            throw new IllegalStateException(
+                    "未配置 OSS 访问凭证，请设置环境变量 OSS_ACCESS_KEY_ID 与 OSS_ACCESS_KEY_SECRET");
+        }
 
-        // 创建OSSClient实例。
-        OSS ossClient = new OSSClientBuilder().build(ENDPOINT,ACCESS_KEY_ID, ACCESS_KEY_SECRET);
+        // 创建 OSSClient 实例。
+        OSS ossClient = new OSSClientBuilder().build(ENDPOINT, ACCESS_KEY_ID, ACCESS_KEY_SECRET);
         String url = "";
         try {
-            // 填写字符串。
-            String content = "Hello OSS，你好世界";
-
-            // 创建PutObjectRequest对象。
+            // 创建 PutObjectRequest 对象。
             PutObjectRequest putObjectRequest = new PutObjectRequest(BUCKET_NAME, objectName, in);
 
-            // 如果需要上传时设置存储类型和访问权限，请参考以下示例代码。
-            // ObjectMetadata metadata = new ObjectMetadata();
-            // metadata.setHeader(OSSHeaders.OSS_STORAGE_CLASS, StorageClass.Standard.toString());
-            // metadata.setObjectAcl(CannedAccessControlList.Private);
-            // putObjectRequest.setMetadata(metadata);
-
-            // 上传字符串。
+            // 上传文件。
             PutObjectResult result = ossClient.putObject(putObjectRequest);
-            //url组成: https://bucket名称.区域节点/objectName
-            url = "https://"+BUCKET_NAME+"."+ENDPOINT.substring(ENDPOINT.lastIndexOf("/")+1)+"/"+objectName;
+            // url 组成: https://bucket名称.区域节点/objectName
+            url = "https://" + BUCKET_NAME + "."
+                    + ENDPOINT.substring(ENDPOINT.lastIndexOf("/") + 1) + "/" + objectName;
         } catch (OSSException oe) {
             System.out.println("Caught an OSSException, which means your request made it to OSS, "
                     + "but was rejected with an error response for some reason.");

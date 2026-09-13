@@ -83,36 +83,31 @@ mybig-event/
    cd mybig-event
    ```
 
-2. **修改配置文件**
+2. **配置数据库、Redis 与 OSS**
 
-   编辑 `src/main/resources/application.yml`，配置数据库和 Redis 连接：
+   所有敏感配置均通过**环境变量**注入，`application.yml` 中只保留带默认值的占位符，
+   仓库内不存放任何真实凭证。
 
-   ```yaml
-   spring:
-     datasource:
-       driver-class-name: com.mysql.cj.jdbc.Driver
-       url: jdbc:mysql://localhost:3306/big_event
-       username: 你的数据库用户名
-       password: 你的数据库密码
-     data:
-       redis:
-         host: localhost
-         port: 6379
-         password: 你的Redis密码（如无则留空）
+   | 环境变量 | 说明 | 默认值 |
+   |---|---|---|
+   | `MYSQL_URL` | MySQL 连接串 | `jdbc:mysql://localhost:3306/big_event` |
+   | `MYSQL_USERNAME` | 数据库用户名 | `root` |
+   | `MYSQL_PASSWORD` | 数据库密码 | 空 |
+   | `REDIS_HOST` | Redis 主机 | `localhost` |
+   | `REDIS_PORT` | Redis 端口 | `6379` |
+   | `REDIS_PASSWORD` | Redis 密码 | 空 |
+   | `OSS_ENDPOINT` | OSS 地域节点 | `https://oss-cn-beijing.aliyuncs.com` |
+   | `OSS_ACCESS_KEY_ID` | OSS AccessKeyId | 无（必填） |
+   | `OSS_ACCESS_KEY_SECRET` | OSS AccessKeySecret | 无（必填） |
+   | `OSS_BUCKET` | OSS Bucket 名称 | `big-event` |
+
+   本地开发可在启动前导出这些变量，例如：
+
+   ```bash
+   export OSS_ACCESS_KEY_ID=你的AccessKeyId
+   export OSS_ACCESS_KEY_SECRET=你的AccessKeySecret
+   export MYSQL_PASSWORD=你的数据库密码
    ```
-
-3. **配置阿里云 OSS**
-
-   编辑 `src/main/java/itheima/utils/AliOssUtil.java`，修改 OSS 配置：
-
-   ```java
-   private static final String ENDPOINT = "你的OSS地域节点";
-   private static final String ACCESS_KEY_ID = "你的ACCESS_KEY_ID";
-   private static final String ACCESS_KEY_SECRET = "你的ACCESS_KEY_SECRET";
-   private static final String BUCKET_NAME = "你的Bucket名称";
-   ```
-
-   > 建议生产环境通过环境变量注入密钥，避免硬编码
 
 4. **创建数据库**
 
@@ -168,10 +163,10 @@ Authorization: Bearer {your-jwt-token}
 
 项目配置了 GitHub Actions 自动化构建流程，当代码推送到 `master` 分支或创建 Pull Request 时，将自动执行以下操作：
 
-1. 检查代码
-2. 构建项目
-3. 运行测试
-4. 生成依赖报告
+1. 检出代码并配置 JDK 17
+2. 执行 `mvn -B package`，编译主代码与测试代码
+3. 运行单元测试（测试不依赖外部 MySQL / Redis 服务，可在 CI 环境独立执行）
+4. 生成依赖报告（该步骤失败不阻塞构建）
 
 ## 许可证
 
